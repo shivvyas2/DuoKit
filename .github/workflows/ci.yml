@@ -14,7 +14,7 @@ jobs:
     name: Core tests and duo-lint
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Swift and Xcode versions
         run: swift --version && xcodebuild -version
       - name: Package tests
@@ -24,9 +24,10 @@ jobs:
 
   ios:
     name: Build the components for iOS
-    runs-on: macos-26
+    # GitHub's image with Xcode 27, which has the iPhone Duo SDK.
+    runs-on: xcode-27
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # The components use the iPhone Duo APIs, which need the iOS 27.1 SDK.
       - name: Select Xcode 27.1 or newer
         run: |
@@ -41,7 +42,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO -quiet build 2>&1 | tee xcodebuild.log
       - name: Keep the build log
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: xcodebuild-log
           path: xcodebuild.log
@@ -50,9 +51,12 @@ jobs:
     name: Secret scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # The CLI over the whole history, rather than the action, which scans
+      # only the pushed range and cannot scan a repository's first push.
+      - name: gitleaks
+        run: |
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/repo" \
+            ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo --no-banner --redact --verbose
