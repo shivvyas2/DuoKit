@@ -20,9 +20,5 @@ The first release: the components an app needs to feel native on iPhone Duo, and
 - **`duo-lint`.** Six rules for Swift sources and app configuration, in Xcode's warning format, exiting 1 on errors.
 - **Demo app.** A health dashboard, a mail split view, a tent-mode player, and a posture lab.
 
-### Fixed
-
-- `DuoGrid` no longer traps when a stack measures it with an infinite width proposal.
-
 [Unreleased]: https://github.com/shivvyas2/DuoKit/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/shivvyas2/DuoKit/releases/tag/v0.1.0
