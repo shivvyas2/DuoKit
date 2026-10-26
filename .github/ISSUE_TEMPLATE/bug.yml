@@ -1,0 +1,36 @@
+name: Bug report
+description: Something does not look or work the way it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you saw instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: posture
+    attributes:
+      label: Posture
+      multiple: true
+      options: [Folded (outer display), Open, Open in landscape, Book, Tent, Regular iPhone, iPad]
+    validations:
+      required: true
+  - type: input
+    id: component
+    attributes:
+      label: Component
+      placeholder: "DuoTabShell, DuoGrid, duo-lint"
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Device, OS, and DuoKit version
+      placeholder: "iPhone Duo simulator, iOS 27.1, DuoKit 0.1.0"
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots or a snippet
+      description: A screenshot with `.duoDebugOverlay()` on helps a lot.

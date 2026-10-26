@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: Core tests and duo-lint
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Swift and Xcode versions
+        run: swift --version && xcodebuild -version
+      - name: Package tests
+        run: swift test --parallel
+      - name: duo-lint on DuoKit itself
+        run: swift run duo-lint Sources Demo
+
+  ios:
+    name: Build the components for iOS
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      # The components use the iPhone Duo APIs, which need the iOS 27.1 SDK.
+      - name: Select Xcode 27.1 or newer
+        run: |
+          xcode=$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$xcode" ]; then echo "::error::No Xcode 27 on this runner"; exit 1; fi
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
+      - name: Build DuoKit for the simulator
+        run: |
+          set -o pipefail
+          xcodebuild -scheme DuoKit -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO -quiet build 2>&1 | tee xcodebuild.log
+      - name: Keep the build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: xcodebuild.log
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
